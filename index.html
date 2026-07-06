@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tablero · Liderazgo Directivo</title>
+<style>
+  :root{
+    --ink:#0f172a;
+    --muted:#64748b;
+    --line:#e2e8f0;
+    --soft:#f8fafc;
+    --bg:#ffffff;
+    --teal:#0d9488;
+    --teal-dark:#0f766e;
+    /* niveles de frecuencia */
+    --siempre:#0f766e;
+    --aveces:#d97706;
+    --nunca:#dc2626;
+    --shadow:0 1px 2px rgba(15,23,42,.04), 0 1px 12px rgba(15,23,42,.04);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    background:var(--soft);
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 60px}
+
+  /* Header */
+  header.top{margin-bottom:22px}
+  .eyebrow{
+    font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--teal-dark);font-weight:700;margin:0 0 6px
+  }
+  h1{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:0 0 4px;line-height:1.15}
+  .subtitle{color:var(--muted);font-size:14px;margin:0}
+  .accent{height:3px;width:56px;background:var(--teal);border-radius:2px;margin:14px 0 0}
+
+  /* Controls bar */
+  .controls{
+    display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;
+    margin:22px 0 20px;
+  }
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field label{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.02em}
+  select{
+    appearance:none;-webkit-appearance:none;
+    font:inherit;font-size:14px;color:var(--ink);
+    background:var(--bg) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat right 12px center;
+    border:1px solid var(--line);border-radius:9px;
+    padding:10px 38px 10px 12px;min-width:280px;cursor:pointer;
+  }
+  select:focus-visible{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal)}
+  .spacer{flex:1}
+  .toggle{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--bg)}
+  .toggle button{
+    font:inherit;font-size:13px;font-weight:600;color:var(--muted);
+    background:transparent;border:0;padding:9px 16px;cursor:pointer
+  }
+  .toggle button.active{background:var(--teal);color:#fff}
+  .toggle button:focus-visible{outline:2px solid var(--teal);outline-offset:-2px}
+  .btn{
+    font:inherit;font-size:13px;font-weight:600;
+    display:inline-flex;align-items:center;gap:7px;
+    background:var(--bg);color:var(--ink);
+    border:1px solid var(--line);border-radius:9px;padding:9px 15px;cursor:pointer
+  }
+  .btn:hover{border-color:#cbd5e1}
+  .btn:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
+  .btn svg{width:15px;height:15px}
+
+  /* Summary cards */
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px}
+  .card{
+    background:var(--bg);border:1px solid var(--line);border-radius:12px;
+    padding:16px 18px;box-shadow:var(--shadow)
+  }
+  .card .k{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.02em;margin:0 0 8px}
+  .card .v{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
+  .card .v small{font-size:14px;font-weight:600;color:var(--muted);margin-left:4px}
+  .card.index .v{color:var(--teal-dark)}
+  .card .note{font-size:12px;color:var(--muted);margin:8px 0 0}
+
+  /* Section */
+  .panel{background:var(--bg);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);margin-bottom:26px}
+  .panel-head{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:18px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap
+  }
+  .panel-head h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.01em}
+  .legend{display:flex;gap:16px;flex-wrap:wrap}
+  .legend span{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);font-weight:600}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .dot.siempre{background:var(--siempre)}
+  .dot.aveces{background:var(--aveces)}
+  .dot.nunca{background:var(--nunca)}
+
+  /* Question rows */
+  .q{display:grid;grid-template-columns:34px 1fr 76px;gap:16px;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)}
+  .q:last-child{border-bottom:0}
+  .q .num{
+    font-size:12px;font-weight:800;color:var(--muted);
+    background:var(--soft);border:1px solid var(--line);border-radius:8px;
+    width:34px;height:34px;display:flex;align-items:center;justify-content:center
+  }
+  .q .body .text{font-size:13.5px;color:var(--ink);margin:0 0 8px;font-weight:500}
+  .bar{
+    display:flex;height:26px;border-radius:7px;overflow:hidden;
+    background:var(--soft);border:1px solid var(--line)
+  }
+  .seg{
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums;
+    min-width:0;white-space:nowrap;transition:width .35s ease
+  }
+  .seg.siempre{background:var(--siempre)}
+  .seg.aveces{background:var(--aveces)}
+  .seg.nunca{background:var(--nunca)}
+  .seg .lbl{padding:0 6px;overflow:hidden;text-overflow:ellipsis}
+  .q .idx{text-align:right}
+  .pill{
+    display:inline-block;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;
+    padding:6px 10px;border-radius:8px;min-width:54px;text-align:center
+  }
+  .pill.high{background:#ccfbf1;color:var(--teal-dark)}
+  .pill.mid{background:#fef3c7;color:#b45309}
+  .pill.low{background:#fee2e2;color:#b91c1c}
+  .pill .cap{display:block;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.75;margin-top:1px}
+
+  /* Table */
+  .table-scroll{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:12.5px}
+  thead th{
+    position:sticky;top:0;background:var(--soft);
+    text-align:left;font-weight:700;color:var(--muted);
+    padding:11px 10px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:11.5px
+  }
+  thead th.qh{cursor:help;text-align:center;letter-spacing:.02em}
+  tbody td{padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:middle}
+  tbody tr:hover{background:var(--soft)}
+  td.ans{text-align:center}
+  .chip{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+  .chip.siempre{background:#ccfbf1;color:var(--teal-dark)}
+  .chip.aveces{background:#fef3c7;color:#b45309}
+  .chip.nunca{background:#fee2e2;color:#b91c1c}
+  .chip.na{background:var(--soft);color:var(--muted);font-weight:600}
+  td.strong{font-weight:600;color:var(--ink)}
+  td.mut{color:var(--muted)}
+
+  /* states */
+  .state{padding:60px 20px;text-align:center;color:var(--muted);font-size:14px}
+  .spin{
+    width:26px;height:26px;border-radius:50%;border:3px solid var(--line);
+    border-top-color:var(--teal);animation:sp .8s linear infinite;margin:0 auto 14px
+  }
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .err{color:#b91c1c}
+  .err code{background:#fef2f2;padding:2px 6px;border-radius:5px;font-size:12px}
+
+  footer.foot{color:var(--muted);font-size:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:4px}
+  #updated{font-variant-numeric:tabular-nums}
+
+  @media (max-width:720px){
+    .cards{grid-template-columns:repeat(2,1fr)}
+    select{min-width:0;width:100%}
+    .field{width:100%}
+    .q{grid-template-columns:28px 1fr;grid-template-areas:"num body" "idx idx";row-gap:10px}
+    .q .num{grid-area:num}.q .body{grid-area:body}.q .idx{grid-area:idx;text-align:left}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <p class="eyebrow">Encuesta a docentes</p>
+    <h1>Liderazgo Directivo — Tabulación</h1>
+    <p class="subtitle">Frecuencia de respuestas por pregunta e índice del centro escolar. Datos en vivo desde Google&nbsp;Forms.</p>
+    <div class="accent"></div>
+  </header>
+
+  <div class="controls">
+    <div class="field">
+      <label for="fCentro">Centro escolar</label>
+      <select id="fCentro"><option value="__all__">Todos los centros</option></select>
+    </div>
+    <div class="spacer"></div>
+    <div class="field">
+      <label>Mostrar en las barras</label>
+      <div class="toggle" id="modeToggle" role="group" aria-label="Modo de visualización">
+        <button data-mode="pct" class="active" type="button">%</button>
+        <button data-mode="count" type="button">Conteo</button>
+      </div>
+    </div>
+    <button class="btn" id="refresh" type="button" title="Volver a cargar los datos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><polyline points="21 3 21 9 15 9"/></svg>
+      Actualizar
+    </button>
+  </div>
+
+  <div class="cards" id="cards" hidden>
+    <div class="card"><p class="k">Respuestas</p><div class="v" id="cRespuestas">–</div><p class="note" id="cContexto">&nbsp;</p></div>
+    <div class="card"><p class="k">Centros con datos</p><div class="v" id="cCentros">–</div><p class="note">&nbsp;</p></div>
+    <div class="card"><p class="k">Preguntas evaluadas</p><div class="v" id="cPreguntas">–</div><p class="note">&nbsp;</p></div>
+    <div class="card index"><p class="k">Índice general</p><div class="v" id="cIndice">–<small>/ 2</small></div><p class="note" id="cIndicePct">&nbsp;</p></div>
+  </div>
+
+  <section class="panel" id="qPanel" hidden>
+    <div class="panel-head">
+      <h2>Frecuencia por pregunta</h2>
+      <div class="legend">
+        <span><i class="dot siempre"></i>Siempre (2)</span>
+        <span><i class="dot aveces"></i>A veces (1)</span>
+        <span><i class="dot nunca"></i>Nunca (0)</span>
+      </div>
+    </div>
+    <div id="questions"></div>
+  </section>
+
+  <section class="panel" id="tPanel" hidden>
+    <div class="panel-head"><h2>Tabla de respuestas</h2><span class="subtitle" id="tCount"></span></div>
+    <div class="table-scroll"><table id="respTable"><thead></thead><tbody></tbody></table></div>
+  </section>
+
+  <div class="state" id="state"><div class="spin"></div>Cargando datos…</div>
+
+  <footer class="foot">
+    <span id="updated"></span>
+    <span>Fuente: Google Forms · Escala Siempre=2, A veces=1, Nunca=0</span>
+  </footer>
+
+</div>
+
+<script>
+/* ============================================================
+   CONFIGURACIÓN  (editar aquí)
+   ============================================================ */
+const SHEET_ID   = "18o2NoUSPj9QgZfYVMqNx7El0B79lvGiTW10MgjexHDk";
+const SHEET_NAME = "Form Responses 1";        // pestaña de respuestas
+const EXCLUIR_CODIGOS = ["9776"];              // códigos a excluir (fila de prueba)
+const ESCALA = { "Siempre": 2, "A veces": 1, "Nunca": 0 };
+const NIVELES = [
+  { key:"Siempre", cls:"siempre" },
+  { key:"A veces", cls:"aveces"  },
+  { key:"Nunca",   cls:"nunca"   }
+];
+const MAX_VAL = 2;                              // valor máximo de la escala
+
+/* ============================================================
+   ESTADO
+   ============================================================ */
+let RECORDS  = [];      // registros válidos
+let QUESTIONS = [];     // etiquetas de preguntas (limpias)
+let MODE = "pct";       // "pct" | "count"
+
+/* ============================================================
+   UTILIDADES
+   ============================================================ */
+function norm(s){ return (s==null?"":String(s)).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim(); }
+function esc(s){ return (s==null?"":String(s)).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function el(id){ return document.getElementById(id); }
+
+function findCol(cols, keys){
+  for(let i=0;i<cols.length;i++){ const h=norm(cols[i]); if(keys.some(k=>h.includes(k))) return i; }
+  return -1;
+}
+function cleanQ(label){
+  const s=(label||"").trim();
+  const m=s.match(/\[([^\]]+)\]\s*$/);   // toma el texto entre corchetes si existe
+  return (m ? m[1] : s).trim();
+}
+function levelOf(answer){
+  const n=norm(answer);
+  if(n==="siempre") return "Siempre";
+  if(n==="a veces"||n==="aveces") return "A veces";
+  if(n==="nunca") return "Nunca";
+  return null; // valores fuera de escala se ignoran
+}
+
+/* ============================================================
+   CARGA DE DATOS (cascada: gviz JSON -> CSV -> JSONP)
+   ============================================================ */
+function gvizUrl(out){
+  const base="https://docs.google.com/spreadsheets/d/"+SHEET_ID+"/gviz/tq";
+  return base+"?tqx=out:"+out+"&headers=1&sheet="+encodeURIComponent(SHEET_NAME);
+}
+
+function parseGviz(obj){
+  const table=(obj&&obj.table)||{cols:[],rows:[]};
+  const cols=(table.cols||[]).map(c=> (c.label||c.id||"").trim());
+  const rows=(table.rows||[]).map(r=> (r.c||[]).map(cell=>{
+    if(!cell) return "";
+    if(cell.f!=null) return String(cell.f);
+    if(cell.v!=null) return String(cell.v);
+    return "";
+  }));
+  return {cols, rows};
+}
+
+function parseCSV(text){
+  const rows=[]; let row=[], field="", i=0, q=false;
+  while(i<text.length){
+    const c=text[i];
+    if(q){
+      if(c==='"'){ if(text[i+1]==='"'){field+='"';i+=2;continue;} q=false;i++;continue; }
+      field+=c;i++;continue;
+    }
+    if(c==='"'){q=true;i++;continue;}
+    if(c===','){row.push(field);field="";i++;continue;}
+    if(c==='\r'){i++;continue;}
+    if(c==='\n'){row.push(field);rows.push(row);row=[];field="";i++;continue;}
+    field+=c;i++;
+  }
+  if(field.length||row.length){row.push(field);rows.push(row);}
+  return rows;
+}
+function parseCsvTable(text){
+  const all=parseCSV(text);
+  const cols=(all[0]||[]).map(s=>(s||"").trim());
+  const rows=all.slice(1);
+  return {cols, rows};
+}
+
+function loadJsonp(){
+  return new Promise((resolve,reject)=>{
+    const handler="__gvizcb_"+Math.random().toString(36).slice(2);
+    const s=document.createElement("script");
+    const timer=setTimeout(()=>{cleanup();reject(new Error("timeout JSONP"));},15000);
+    function cleanup(){ try{delete window[handler];}catch(e){window[handler]=undefined;} if(s.parentNode)s.parentNode.removeChild(s); clearTimeout(timer); }
+    window[handler]=obj=>{ cleanup(); resolve(obj); };
+    s.onerror=()=>{ cleanup(); reject(new Error("error de script JSONP")); };
+    s.src=gvizUrl("json:responseHandler:"+handler);
+    document.head.appendChild(s);
+  });
+}
+
+async function fetchData(){
+  // 1) gviz JSON por fetch
+  try{
+    const r=await fetch(gvizUrl("json"),{cache:"no-store"});
+    if(r.ok){ const t=await r.text(); const obj=JSON.parse(t.slice(t.indexOf("{"),t.lastIndexOf("}")+1)); return parseGviz(obj); }
+  }catch(e){/* CORS u otro -> siguiente */}
+  // 2) CSV por fetch
+  try{
+    const r=await fetch(gvizUrl("csv"),{cache:"no-store"});
+    if(r.ok){ const t=await r.text(); return parseCsvTable(t); }
+  }catch(e){/* -> siguiente */}
+  // 3) JSONP (siempre evita CORS)
+  return parseGviz(await loadJsonp());
+}
+
+/* ============================================================
+   NORMALIZACIÓN A REGISTROS
+   ============================================================ */
+function buildRecords(cols, rows){
+  const iTime=findCol(cols,["marca temporal","timestamp"]);
+  const iAud =findCol(cols,["auditor"]);
+  const iCod =findCol(cols,["codigo"]);
+  const iCen =findCol(cols,["nombre del centro"]);
+  const iCant=findCol(cols,["cantidad"]);
+  const meta=new Set([iTime,iAud,iCod,iCen,iCant].filter(i=>i>=0));
+
+  const qIdx=[];
+  cols.forEach((c,i)=>{ if(!meta.has(i) && norm(c)!=="") qIdx.push(i); });
+  QUESTIONS = qIdx.map(i=>cleanQ(cols[i]));
+
+  const recs=rows.map(r=>({
+    time:    iTime>=0 ? (r[iTime]||"") : "",
+    auditor: iAud >=0 ? (r[iAud] ||"") : "",
+    codigo:  iCod >=0 ? String(r[iCod]||"").trim() : "",
+    centro:  iCen >=0 ? String(r[iCen]||"").trim() : "",
+    cantidad:iCant>=0 ? (r[iCant]||"") : "",
+    answers: qIdx.map(i=> String(r[i]||"").trim())
+  }));
+
+  RECORDS = recs.filter(rec=>{
+    if(EXCLUIR_CODIGOS.includes(rec.codigo)) return false;
+    const hasAny = rec.time || rec.answers.some(a=>a!=="");
+    return hasAny;
+  });
+}
+
+/* ============================================================
+   CÁLCULOS
+   ============================================================ */
+function filteredRecords(){
+  const v=el("fCentro").value;
+  if(v==="__all__") return RECORDS;
+  return RECORDS.filter(r=>r.centro===v);
+}
+function questionStats(recs, qi){
+  const counts={ "Siempre":0, "A veces":0, "Nunca":0 };
+  let sum=0, n=0;
+  recs.forEach(r=>{
+    const lvl=levelOf(r.answers[qi]);
+    if(lvl){ counts[lvl]++; sum+=ESCALA[lvl]; n++; }
+  });
+  return { counts, total:n, avg: n? sum/n : null };
+}
+function generalIndex(recs){
+  let sum=0, n=0;
+  recs.forEach(r=> r.answers.forEach(a=>{ const l=levelOf(a); if(l){ sum+=ESCALA[l]; n++; } }));
+  return n ? sum/n : null;
+}
+function pillClass(avg){ return avg>=1.5?"high":(avg>=1.0?"mid":"low"); }
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function renderFilter(){
+  const sel=el("fCentro");
+  const prev=sel.value;
+  const centros=[...new Set(RECORDS.map(r=>r.centro).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es"));
+  sel.innerHTML='<option value="__all__">Todos los centros</option>'+
+    centros.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
+  if([...sel.options].some(o=>o.value===prev)) sel.value=prev;
+}
+
+function renderCards(recs){
+  el("cRespuestas").textContent = recs.length;
+  const v=el("fCentro").value;
+  const centrosTotal=new Set(RECORDS.map(r=>r.centro).filter(Boolean)).size;
+  el("cCentros").textContent = v==="__all__" ? centrosTotal : 1;
+  el("cPreguntas").textContent = QUESTIONS.length;
+
+  const idx=generalIndex(recs);
+  el("cIndice").innerHTML = (idx==null?"–":idx.toFixed(2))+'<small>/ 2</small>';
+  el("cIndicePct").textContent = idx==null ? "\u00a0" : ("Equivale al "+Math.round(idx/MAX_VAL*100)+"% del máximo");
+
+  // contexto: docentes reportados del centro seleccionado
+  let ctx="\u00a0";
+  if(v!=="__all__"){
+    const cant=recs.map(r=>r.cantidad).find(x=>x!=="" && x!=null);
+    if(cant) ctx="Docentes en el centro: "+esc(cant);
+  }
+  el("cContexto").innerHTML=ctx;
+}
+
+function renderQuestions(recs){
+  const box=el("questions");
+  box.innerHTML = QUESTIONS.map((q,qi)=>{
+    const st=questionStats(recs,qi);
+    const total=st.total;
+    const segs=NIVELES.map(nv=>{
+      const c=st.counts[nv.key];
+      const pct=total? (c/total*100):0;
+      if(pct<=0) return "";
+      const label = MODE==="pct" ? (pct>=8? Math.round(pct)+"%":"") : (pct>=8? c:"");
+      const title = `${nv.key}: ${c} (${total?Math.round(pct):0}%)`;
+      return `<div class="seg ${nv.cls}" style="width:${pct}%" title="${esc(title)}"><span class="lbl">${label}</span></div>`;
+    }).join("");
+    const bar = total
+      ? `<div class="bar">${segs}</div>`
+      : `<div class="bar"><div class="seg" style="width:100%;background:#f1f5f9;color:#94a3b8">Sin respuestas</div></div>`;
+    const pill = st.avg==null
+      ? `<span class="pill mid">–<span class="cap">índice</span></span>`
+      : `<span class="pill ${pillClass(st.avg)}">${st.avg.toFixed(2)}<span class="cap">índice</span></span>`;
+    return `
+      <div class="q">
+        <div class="num">P${qi+1}</div>
+        <div class="body">
+          <p class="text">${esc(q)}</p>
+          ${bar}
+        </div>
+        <div class="idx">${pill}</div>
+      </div>`;
+  }).join("");
+}
+
+function renderTable(recs){
+  const thead=el("respTable").querySelector("thead");
+  const tbody=el("respTable").querySelector("tbody");
+  const qHeads=QUESTIONS.map((q,i)=>`<th class="qh" title="${esc(q)}">P${i+1}</th>`).join("");
+  thead.innerHTML=`<tr>
+     <th>Fecha</th><th>Auditor</th><th>Código</th><th>Centro escolar</th><th>Docentes</th>${qHeads}
+   </tr>`;
+
+  if(!recs.length){
+    tbody.innerHTML=`<tr><td colspan="${5+QUESTIONS.length}" class="mut" style="text-align:center;padding:26px">Sin respuestas para este filtro.</td></tr>`;
+  } else {
+    tbody.innerHTML=recs.map(r=>{
+      const ans=r.answers.map(a=>{
+        const l=levelOf(a);
+        const cls = l==="Siempre"?"siempre":(l==="A veces"?"aveces":(l==="Nunca"?"nunca":"na"));
+        const txt = l? l : (a||"—");
+        return `<td class="ans"><span class="chip ${cls}">${esc(txt)}</span></td>`;
+      }).join("");
+      return `<tr>
+        <td class="mut">${esc(r.time)}</td>
+        <td class="strong">${esc(r.auditor||"—")}</td>
+        <td class="mut">${esc(r.codigo||"—")}</td>
+        <td>${esc(r.centro||"—")}</td>
+        <td class="mut">${esc(r.cantidad||"—")}</td>
+        ${ans}
+      </tr>`;
+    }).join("");
+  }
+  el("tCount").textContent = recs.length+" registro"+(recs.length===1?"":"s");
+}
+
+function renderAll(){
+  const recs=filteredRecords();
+  renderCards(recs);
+  renderQuestions(recs);
+  renderTable(recs);
+}
+
+function showPanels(show){
+  ["cards","qPanel","tPanel"].forEach(id=>el(id).hidden=!show);
+  el("state").hidden=show;
+}
+
+/* ============================================================
+   ORQUESTACIÓN
+   ============================================================ */
+async function load(){
+  showPanels(false);
+  el("state").innerHTML='<div class="spin"></div>Cargando datos…';
+  try{
+    const {cols, rows}=await fetchData();
+    buildRecords(cols, rows);
+    if(!QUESTIONS.length) throw new Error("No se detectaron columnas de preguntas.");
+    renderFilter();
+    renderAll();
+    showPanels(true);
+    const now=new Date();
+    el("updated").textContent="Actualizado: "+now.toLocaleString("es-SV",{dateStyle:"medium",timeStyle:"short"});
+  }catch(err){
+    showPanels(false);
+    el("state").innerHTML=`<p class="err"><strong>No se pudieron cargar los datos.</strong></p>
+      <p class="err" style="font-weight:400">Verifica que el Sheet esté compartido como <em>“Cualquier persona con el enlace”</em> y que la pestaña se llame <code>${esc(SHEET_NAME)}</code>.</p>
+      <p style="font-weight:400;font-size:12px">Detalle: ${esc(err.message)}</p>
+      <button class="btn" style="margin-top:8px" onclick="load()" type="button">Reintentar</button>`;
+  }
+}
+
+/* eventos */
+el("fCentro").addEventListener("change", renderAll);
+el("refresh").addEventListener("click", load);
+el("modeToggle").addEventListener("click", e=>{
+  const b=e.target.closest("button[data-mode]"); if(!b) return;
+  MODE=b.dataset.mode;
+  [...el("modeToggle").children].forEach(x=>x.classList.toggle("active", x===b));
+  renderQuestions(filteredRecords());
+});
+
+load();
+</script>
+</body>
+</html>
